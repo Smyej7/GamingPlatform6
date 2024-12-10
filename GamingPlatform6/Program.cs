@@ -13,7 +13,7 @@ namespace GamingPlatform6
             //=====Middleware and Services=============================================
             var builder = WebApplication.CreateBuilder(args);
 
-            // Configure Entity Framework avec la base de données SQLite ou SQL Server
+            // Configure Entity Framework avec la base de données SQLite ou SQL Servervb
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
