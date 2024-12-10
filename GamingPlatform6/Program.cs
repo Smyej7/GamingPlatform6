@@ -1,4 +1,6 @@
+using GamingPlatform6.Data;
 using Microsoft.AspNetCore.Mvc.Razor;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic;
 
 //Program.cs===========================================================================
@@ -10,6 +12,13 @@ namespace GamingPlatform6
         {
             //=====Middleware and Services=============================================
             var builder = WebApplication.CreateBuilder(args);
+
+            // Configure Entity Framework avec la base de données SQLite ou SQL Server
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            // Configure MVC
+            builder.Services.AddControllersWithViews();
 
             //adding multi-language support
             AddingMultiLanguageSupportServices(builder);
