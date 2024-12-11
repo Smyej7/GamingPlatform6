@@ -5,12 +5,14 @@ namespace GamingPlatform6.Models
     public class Game
     {
         [Key]
-        public int Id { get; set; }
-
         [Required]
         [StringLength(100)]
         public required string GameName { get; set; }
 
+        public override string ToString()
+        {
+            return $"Game: {GameName}";
+        }
         //[Required]
         //public DateTime StartTime { get; set; } = DateTime.Now;
 

@@ -8,16 +8,19 @@ namespace GamingPlatform6.Models
         public int Id { get; set; }
 
         [Required]
-        public int UserId { get; set; } // Clé étrangère vers l'utilisateur
-        public User User { get; set; } // Navigation vers le modèle User
+        public string UserId { get; set; }
 
         [Required]
-        public int GameId { get; set; } // Clé étrangère vers le jeu
-        public Game Game { get; set; } // Navigation vers le modèle Game
+        public string GameId { get; set; }
 
         [Required]
-        public int Points { get; set; } // Le score de l'utilisateur dans ce jeu
+        public int Points { get; set; }
 
-        public DateTime AchievedAt { get; set; } = DateTime.Now; // Date à laquelle le score a été obtenu
+        public DateTime AchievedAt { get; set; } = DateTime.Now;
+
+        public override string ToString()
+        {
+            return $"Score: {Points}, GameId: {GameId}, UserId: {UserId}, AchievedAt: {AchievedAt}, Id: {Id}";
+        }
     }
 }

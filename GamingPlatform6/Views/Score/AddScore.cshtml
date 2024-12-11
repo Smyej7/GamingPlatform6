@@ -1,0 +1,100 @@
+﻿@model GamingPlatform6.Models.Score
+
+@{
+    ViewData["Title"] = "Ajouter un Score";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>@ViewData["Title"]</title>
+    <script>
+        // Fonction pour afficher les valeurs dans la console du navigateur et soumettre le formulaire
+        function showValuesInConsole() {
+            var gameId = document.getElementById("gameId").value;
+            var points = document.getElementById("points").value;
+            var userCookie = getCookie("username");
+
+            console.log("GameId:", gameId);
+            console.log("Points:", points);
+            console.log("Utilisateur connecté:", userCookie);
+
+            // Vérification si les champs GameId et Points sont remplis
+            if (!gameId || !points) {
+                console.log("Erreur : Les champs 'Jeu' et 'Score' doivent être remplis.");
+                alert("Veuillez remplir à la fois le champ 'Jeu' et le champ 'Score'.");
+                return; // Ne pas soumettre le formulaire si l'un des champs est vide
+            }
+
+            // Si l'utilisateur est connecté, remplir le champ caché avec username
+            if (userCookie) {
+                document.getElementById("userId").value = userCookie;
+            } else {
+                console.log("Aucun utilisateur connecté.");
+                alert("Veuillez vous connecter.");
+                return; // Ne pas soumettre le formulaire si l'utilisateur n'est pas connecté
+            }
+
+            // Si tous les champs sont valides, soumettre le formulaire
+            document.getElementById("scoreForm").submit();
+        }
+
+        // Fonction pour récupérer un cookie par son nom
+        function getCookie(name) {
+            var nameEQ = name + "=";
+            var ca = document.cookie.split(';');
+            for (var i = 0; i < ca.length; i++) {
+                var c = ca[i];
+                while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+    </script>
+</head>
+<body>
+    <div style="display: flex; justify-content: center; align-items: center; flex-direction: column; height: 100vh; padding: 20px;">
+        <h2>Ajouter un Score</h2>
+
+        @if (ViewBag.ErrorMessage != null)
+        {
+            <div style="color: red; margin-bottom: 20px;">
+                <strong>@ViewBag.ErrorMessage</strong>
+            </div>
+        }
+
+        <div style="width: 300px;">
+            <form id="scoreForm" method="post" asp-action="AddScore" asp-controller="Score">
+                <!-- Sélection du jeu -->
+                <div style="margin-bottom: 15px;">
+                    <label for="gameId">Choisir un Jeu :</label><br>
+                    <select id="gameId" name="GameId" style="width: 100%; padding: 8px;" required>
+                        <option value="">-- Sélectionner un jeu --</option>
+                        @foreach (var game in ViewBag.Games)
+                        {
+                            <option value="@game.GameName">@game.GameName</option>
+                        }
+                    </select>
+                    @Html.ValidationMessageFor(model => model.GameId)
+                </div>
+
+                <!-- Saisie du score -->
+                <div style="margin-bottom: 15px;">
+                    <label for="points">Score :</label><br>
+                    <input type="number" id="points" name="Points" style="width: 100%; padding: 8px;" min="0" required />
+                    @Html.ValidationMessageFor(model => model.Points)
+                </div>
+
+                <!-- Champ caché pour l'utilisateur -->
+                <input type="hidden" id="userId" name="UserId" />
+                @Html.ValidationMessageFor(model => model.UserId)
+
+                <!-- Bouton pour afficher les valeurs dans la console et soumettre le formulaire -->
+                <button type="button" onclick="showValuesInConsole()" style="padding: 10px 20px; background-color: #4CAF50; color: white; border: none; cursor: pointer;">
+                    Afficher et Soumettre
+                </button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

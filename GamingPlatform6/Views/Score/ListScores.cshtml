@@ -1,0 +1,53 @@
+﻿@model IEnumerable<GamingPlatform6.Models.Score>
+
+@{
+    ViewData["Title"] = "Liste des Scores";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>@ViewData["Title"]</title>
+</head>
+<body>
+    <div style="display: flex; justify-content: center; align-items: center; flex-direction: column; height: 100vh; padding: 20px;">
+        
+        <!-- Titre au-dessus du tableau -->
+        <h2 style="text-align: center; margin-bottom: 20px;">Liste des Scores</h2>
+
+        <!-- Table des scores -->
+        <div style="width: 80%; margin-top: 20px;">
+            <table border="1" style="width: 100%; text-align: center;">
+                <thead>
+                    <tr>
+                        @* <th>Jeu</th> *@
+                        <th>Utilisateur</th>
+                        <th>Score</th>
+                        <th>Date d'atteinte</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var score in Model)
+                        {
+                            <tr>
+                                @* <td>@score.GameId</td> *@
+                                <td>@score.UserId</td>
+                                <td>@score.Points</td>
+                                <td>@score.AchievedAt</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4">Aucun score disponible.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

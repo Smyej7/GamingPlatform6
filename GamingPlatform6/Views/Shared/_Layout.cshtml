@@ -1,4 +1,12 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Http
+@inject IStringLocalizer<SharedResource> StringLocalizer
+
+@{
+    var username = Context.Request.Cookies["username"];
+}
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -7,6 +15,24 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/GamingPlatform6.styles.css" asp-append-version="true" />
+
+    <style>
+        /* Style personnalisé pour le bouton Déconnecter */
+        .logout-btn {
+            color: white;
+            background-color: red; /* Fond rouge */
+            border: none;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: auto; /* Pour le pousser vers la droite */
+            display: inline-block;
+        }
+
+            .logout-btn:hover {
+                background-color: darkred; /* Couleur rouge foncé au survol */
+            }
+    </style>
 </head>
 <body>
     <header>
@@ -28,6 +54,34 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="ChangeLanguage">ChangeLanguage</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="AddUser">AddUser</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Game" asp-action="AddGame">AddGame</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Score" asp-action="AddScore">AddScore</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Score" asp-action="ListScores">ListScores</a>
+                        </li>
+
+                        @if (username != null)
+                        {
+                            <li>@StringLocalizer["ConnectedAs"], @username</li> <!-- Affichage du nom d'utilisateur -->
+                            <li>
+                                <form method="post" asp-controller="User" asp-action="Logout" style="display:inline;">
+                                    <button type="submit" class="logout-btn">
+                                        @StringLocalizer["Logout"]
+                                    </button>
+                                </form>
+                            </li>
+                        }
+                        @* else
+                        {
+                            <li><a href="/User/AddUser">@StringLocalizer["PleaseAddUser"]</a></li>
+                        } *@
                     </ul>
                 </div>
             </div>

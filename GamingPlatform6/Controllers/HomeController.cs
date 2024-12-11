@@ -34,6 +34,16 @@ namespace GamingPlatform6.Controllers
             _htmlLocalizer = htmlLocalizer;
         }
 
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        public IActionResult Privacy()
+        {
+            return View();
+        }
+
         public IActionResult ChangeLanguage(ChangeLanguageViewModel model)
         {
             if (model.IsSubmit)
@@ -84,8 +94,10 @@ namespace GamingPlatform6.Controllers
         {
             //so, here we use IStringLocalizer
             model.IStringLocalizerInController = _stringLocalizer["Wellcome"];
+            model.IStringLocalizerInController = _stringLocalizer["WelcomeMessage"];
             //so, here we use IHtmlLocalizer
             model.IHtmlLocalizerInController = _htmlLocalizer["Wellcome"];
+            model.IHtmlLocalizerInController = _htmlLocalizer["WelcomeMessage"];
             return View(model);
         }
 

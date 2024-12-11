@@ -1,4 +1,5 @@
 using GamingPlatform6.Data;
+using GamingPlatform6.Middleware;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic;
@@ -28,6 +29,9 @@ namespace GamingPlatform6
 
             //====App===================================================================
             var app = builder.Build();
+
+            // Utiliser le middleware de vérification du cookie
+            app.UseMiddleware<CheckUserCookieMiddleware>();
 
             //adding multi-language support
             AddingMultiLanguageSupport(app);

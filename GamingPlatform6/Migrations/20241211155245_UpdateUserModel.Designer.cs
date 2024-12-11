@@ -4,6 +4,7 @@ using GamingPlatform6.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GamingPlatform6.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241211155245_UpdateUserModel")]
+    partial class UpdateUserModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -24,11 +27,18 @@ namespace GamingPlatform6.Migrations
 
             modelBuilder.Entity("GamingPlatform6.Models.Game", b =>
                 {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
                     b.Property<string>("GameName")
+                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.HasKey("GameName");
+                    b.HasKey("Id");
 
                     b.ToTable("Games");
                 });
@@ -44,9 +54,8 @@ namespace GamingPlatform6.Migrations
                     b.Property<DateTime>("AchievedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("GameId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(100)");
+                    b.Property<int>("GameId")
+                        .HasColumnType("int");
 
                     b.Property<int>("Points")
                         .HasColumnType("int");
@@ -66,31 +75,35 @@ namespace GamingPlatform6.Migrations
 
             modelBuilder.Entity("GamingPlatform6.Models.User", b =>
                 {
-                    b.Property<string>("UserName")
+                    b.Property<string>("Username")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.HasKey("UserName");
+                    b.HasKey("Username");
 
                     b.ToTable("Users");
                 });
 
             modelBuilder.Entity("GamingPlatform6.Models.Score", b =>
                 {
-                    b.HasOne("GamingPlatform6.Models.Game", null)
+                    b.HasOne("GamingPlatform6.Models.Game", "Game")
                         .WithMany()
                         .HasForeignKey("GameId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("GamingPlatform6.Models.User", null)
+                    b.HasOne("GamingPlatform6.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Game");
+
+                    b.Navigation("User");
                 });
 #pragma warning restore 612, 618
         }
