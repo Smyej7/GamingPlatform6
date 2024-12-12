@@ -69,5 +69,12 @@ namespace GamingPlatform6.Controllers
 
             return View("LobbyRoom", lobby);
         }
+
+        // Action pour la page "Lobby Complet"
+        [HttpGet]
+        public IActionResult Full()
+        {
+            return View();  // Retourne la vue "Full"
+        }
     }
 }

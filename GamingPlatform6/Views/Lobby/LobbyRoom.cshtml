@@ -22,6 +22,11 @@
         <strong>Personnes en ligne: </strong><span id="onlineCount">0</span>
     </div>
 
+    <!-- Message d'erreur pour informer si le lobby est complet -->
+    <div id="errorMessage" style="color: red; display: none;">
+        <p>Le lobby est déjà complet. Vous ne pouvez pas rejoindre. Vous allez être redirigé vers une autre page...</p>
+    </div>
+
     <input type="text" id="messageInput" placeholder="Votre message" />
     <button id="sendButton">Envoyer</button>
 
@@ -36,6 +41,14 @@
             const msg = document.createElement("div");
             msg.textContent = `${user}: ${message}`;
             document.getElementById("messagesList").appendChild(msg);
+
+            // Vérifier si le message indique que le lobby est complet
+            if (message.includes("déjà complet")) {
+                // Afficher le message d'erreur
+                document.getElementById("errorMessage").style.display = "block";
+
+                window.location.href = "/Lobby/Full";
+            }
         });
 
         // Recevoir le nombre de personnes en ligne

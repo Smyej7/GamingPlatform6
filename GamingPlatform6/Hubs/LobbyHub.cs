@@ -20,18 +20,18 @@ namespace GamingPlatform6.Hubs
                 Lobbies[lobbyId] = new ConcurrentBag<string>();
             }
 
-            // Vérifier si l'utilisateur est déjà dans le lobby
-            if (Lobbies[lobbyId].Contains(user))
-            {
-                return; // Si l'utilisateur est déjà dans le lobby, on ne fait rien et on évite l'ajout redondant
-            }
-
             // Vérifier si le lobby est déjà plein
             if (Lobbies[lobbyId].Count >= MaxPlayersInLobby)
             {
-                // Si le lobby est plein, informer le joueur qu'il ne peut pas rejoindre
-                await Clients.Caller.SendAsync("ReceiveMessage", "System", $"Le lobby {lobbyId} est déjà complet.");
+                // Si le lobby est plein, informer uniquement le joueur concerné
+                await Clients.Caller.SendAsync("ReceiveMessage", "System", $"Le lobby {lobbyId} est déjà complet. Vous allez être redirigé.");
                 return; // Ne pas ajouter le joueur si le lobby est plein
+            }
+
+            // Vérifier si l'utilisateur est déjà dans le lobby
+            if (Lobbies[lobbyId].Contains(user))
+            {
+                return; // Si l'utilisateur est déjà dans le lobby, on ne fait rien
             }
 
             // Ajouter l'utilisateur au lobby
