@@ -9,6 +9,7 @@ namespace GamingPlatform6.Hubs
     {
         // Utiliser un dictionnaire concurrent pour stocker les informations des lobbies
         private static readonly ConcurrentDictionary<string, ConcurrentBag<string>> Lobbies = new();
+        private static readonly int MaxPlayersInLobby = 2;  // Limite des joueurs dans un lobby
 
         // Méthode appelée lorsqu'un client rejoint un lobby
         public async Task JoinLobby(string lobbyId, string user)
@@ -22,7 +23,15 @@ namespace GamingPlatform6.Hubs
             // Vérifier si l'utilisateur est déjà dans le lobby
             if (Lobbies[lobbyId].Contains(user))
             {
-                return; // Si l'utilisateur est déjà dans le lobby, on ne fait rien
+                return; // Si l'utilisateur est déjà dans le lobby, on ne fait rien et on évite l'ajout redondant
+            }
+
+            // Vérifier si le lobby est déjà plein
+            if (Lobbies[lobbyId].Count >= MaxPlayersInLobby)
+            {
+                // Si le lobby est plein, informer le joueur qu'il ne peut pas rejoindre
+                await Clients.Caller.SendAsync("ReceiveMessage", "System", $"Le lobby {lobbyId} est déjà complet.");
+                return; // Ne pas ajouter le joueur si le lobby est plein
             }
 
             // Ajouter l'utilisateur au lobby
@@ -69,7 +78,7 @@ namespace GamingPlatform6.Hubs
         // Méthode appelée lorsqu'un client se connecte
         public override async Task OnConnectedAsync()
         {
-            // Ne pas ajouter l'utilisateur ici, car il sera ajouté depuis le frontend
+            // Nous ne faisons rien ici pour éviter d'ajouter l'utilisateur deux fois (cela se fait uniquement via JoinLobby)
             await base.OnConnectedAsync();
         }
 
