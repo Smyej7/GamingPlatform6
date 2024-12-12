@@ -11,6 +11,7 @@ namespace GamingPlatform6.Data
         public DbSet<Game> Games { get; set; }
         public DbSet<Score> Scores { get; set; }
         public DbSet<ActionLog> ActionLogs { get; set; }
+        public DbSet<Lobby> Lobbies { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

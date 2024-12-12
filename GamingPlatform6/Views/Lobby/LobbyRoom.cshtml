@@ -1,0 +1,67 @@
+﻿@model GamingPlatform6.Models.Lobby
+
+@{
+    ViewData["Title"] = "Lobby Room";
+    var userName = Context.Request.Cookies["username"];  // Récupérer le nom d'utilisateur depuis le cookie
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>@ViewData["Title"]</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.4/signalr.min.js"></script>
+</head>
+<body>
+
+    <h2>Lobby : @Model.LobbyId</h2>
+    <p>Hôte : @Model.HostUserId</p>
+    <p>Invité : @Model.GuestUserId ?? "En attente d'un invité..."</p>
+
+    <div id="messagesList"></div>
+    <div>
+        <strong>Personnes en ligne: </strong><span id="onlineCount">0</span>
+    </div>
+
+    <input type="text" id="messageInput" placeholder="Votre message" />
+    <button id="sendButton">Envoyer</button>
+
+    <script>
+        // Se connecter au hub SignalR
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/lobbyHub?lobbyId=@Model.LobbyId")  // Utiliser l'ID du lobby
+            .build();
+
+        // Recevoir les messages
+        connection.on("ReceiveMessage", (user, message) => {
+            const msg = document.createElement("div");
+            msg.textContent = `${user}: ${message}`;
+            document.getElementById("messagesList").appendChild(msg);
+        });
+
+        // Recevoir le nombre de personnes en ligne
+        connection.on("UpdateOnlineCount", (count) => {
+            document.getElementById("onlineCount").textContent = count;
+        });
+
+        // Envoyer un message
+        document.getElementById("sendButton").addEventListener("click", () => {
+            const message = document.getElementById("messageInput").value;
+            const user = "@userName"; // Récupérer le nom d'utilisateur depuis le cookie
+
+            if (message) {
+                // Appeler la méthode SignalR pour envoyer le message avec le nom d'utilisateur
+                connection.invoke("SendMessage", "@Model.LobbyId", user, message)
+                    .catch(err => console.error(err.toString()));
+                document.getElementById("messageInput").value = "";  // Effacer le champ de texte après l'envoi
+            }
+        });
+
+        // Démarrer la connexion
+        connection.start().then(() => {
+            // Indiquer que l'utilisateur a rejoint le lobby
+            connection.invoke("JoinLobby", "@Model.LobbyId", "@userName").catch(err => console.error(err.toString()));
+        }).catch(err => console.error(err.toString()));
+    </script>
+
+</body>
+</html>

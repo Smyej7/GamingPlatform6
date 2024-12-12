@@ -21,11 +21,14 @@ namespace GamingPlatform6
             // Configure MVC
             builder.Services.AddControllersWithViews();
 
+            // Ajouter SignalR au conteneur de services
+            builder.Services.AddSignalR();
+
             //adding multi-language support
             AddingMultiLanguageSupportServices(builder);
 
             // Add services to the container.
-            builder.Services.AddControllersWithViews();
+            builder.Services.AddControllersWithViews();// ligne dupliquée
 
             //====App===================================================================
             var app = builder.Build();
@@ -50,6 +53,9 @@ namespace GamingPlatform6
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=ChangeLanguage}/{id?}");
+
+            // Ajouter les points de terminaison SignalR
+            app.MapHub<Hubs.LobbyHub>("/lobbyHub"); // URL pour accéder au hub SignalR
 
             app.Run();
         }
