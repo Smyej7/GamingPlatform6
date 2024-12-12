@@ -1,0 +1,67 @@
+﻿@model GamingPlatform6.Models.ActionLog
+
+@{
+    ViewData["Title"] = "Logger une Action";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>@ViewData["Title"]</title>
+</head>
+<body>
+    <div style="display: flex; justify-content: center; align-items: center; flex-direction: column; height: 100vh; padding: 20px;">
+        <h2>Logger une Action</h2>
+
+        @if (ViewBag.ErrorMessage != null)
+        {
+            <div style="color: red; margin-bottom: 20px;">
+                <strong>@ViewBag.ErrorMessage</strong>
+            </div>
+        }
+
+        <form method="post" asp-action="LogAction" asp-controller="Game">
+            <!-- Sélection du jeu -->
+            <div style="margin-bottom: 15px;">
+                <label for="gameId">Jeu :</label><br>
+                <select id="gameId" name="GameId" style="width: 100%; padding: 8px;" required>
+                    <option value="">-- Sélectionner un jeu --</option>
+                    @foreach (var game in ViewBag.Games)
+                    {
+                        <option value="@game.GameName">@game.GameName</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Saisie de l'utilisateur -->
+            <div style="margin-bottom: 15px;">
+                <label for="userId">Utilisateur :</label><br>
+                <input type="text" id="userId" name="UserId" style="width: 100%; padding: 8px;" placeholder="Nom de l'utilisateur" required />
+            </div>
+
+            <!-- Numéro de la partie -->
+            <div style="margin-bottom: 15px;">
+                <label for="partie">Numéro de Partie :</label><br>
+                <input type="number" id="partie" name="Partie" style="width: 100%; padding: 8px;" min="1" placeholder="1" required />
+            </div>
+
+            <!-- Type d'action -->
+            <div style="margin-bottom: 15px;">
+                <label for="action">Action :</label><br>
+                <input type="text" id="action" name="Action" style="width: 100%; padding: 8px;" placeholder="Ex: Move, Attack" required />
+            </div>
+
+            <!-- Description de l'action -->
+            <div style="margin-bottom: 15px;">
+                <label for="description">Description :</label><br>
+                <textarea id="description" name="Description" style="width: 100%; padding: 8px;" placeholder="Décrivez l'action" rows="4"></textarea>
+            </div>
+
+            <!-- Bouton de soumission -->
+            <button type="submit" style="padding: 10px 20px; background-color: #4CAF50; color: white; border: none; cursor: pointer;">
+                Logger l'Action
+            </button>
+        </form>
+    </div>
+</body>
+</html>

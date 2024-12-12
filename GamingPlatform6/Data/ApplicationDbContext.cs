@@ -10,6 +10,7 @@ namespace GamingPlatform6.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Game> Games { get; set; }
         public DbSet<Score> Scores { get; set; }
+        public DbSet<ActionLog> ActionLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -30,6 +31,18 @@ namespace GamingPlatform6.Data
                 .WithMany()  // Pas de navigation inverse dans Game
                 .HasForeignKey(s => s.GameId)  // Utilisation de GameId comme clé étrangère
                 .OnDelete(DeleteBehavior.Restrict); // Pas de suppression en cascade de Score lorsqu'un Game est supprimé
+
+            modelBuilder.Entity<ActionLog>()
+                .HasOne<Game>()
+                .WithMany()
+                .HasForeignKey(al => al.GameId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ActionLog>()
+                .HasOne<User>()
+                .WithMany()
+                .HasForeignKey(al => al.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             base.OnModelCreating(modelBuilder);
         }
