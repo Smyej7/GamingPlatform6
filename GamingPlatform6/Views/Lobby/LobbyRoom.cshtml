@@ -85,7 +85,7 @@
         // Afficher les messages de fin de jeu
         connection.on("GameOver", (message) => {
             alert(message);
-            location.reload();
+            window.location.href = '/Lobby/CreateLobby';
         });
 
         // Afficher les erreurs

@@ -204,4 +204,7 @@
   <data name="WaitingForOpponent" xml:space="preserve">
     <value>En attendant votre adversaire</value>
   </data>
+  <data name="NotYourTurn" xml:space="preserve">
+    <value>Ce n'est pas votre tour</value>
+  </data>
 </root>

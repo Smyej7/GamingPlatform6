@@ -1,7 +1,6 @@
 ﻿using GamingPlatform6.Data;
 using GamingPlatform6.Models;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Localization;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,13 +10,10 @@ namespace GamingPlatform6.Hubs
     public class LobbyHub : Hub
     {
         private readonly ApplicationDbContext _context;
-        private readonly IStringLocalizer<SharedResource> _stringLocalizer;
-        
-        public LobbyHub(ApplicationDbContext context,
-                        IStringLocalizer<SharedResource> stringLocalizer)
+
+        public LobbyHub(ApplicationDbContext context)
         {
             _context = context; // Injection de dépendance
-            _stringLocalizer = stringLocalizer;
         }
 
 #region LobbyHub
@@ -39,7 +35,7 @@ namespace GamingPlatform6.Hubs
             if (Lobbies[lobbyId].Count >= MaxPlayersInLobby)
             {
                 // Si le lobby est plein, informer uniquement le joueur concerné
-                await Clients.Caller.SendAsync("ReceiveMessage", "System", $"*C1*-{_stringLocalizer["LobbyFull"]}");
+                await Clients.Caller.SendAsync("ReceiveMessage", "System", $"*C1*-Le lobby {lobbyId} est déjà complet.");
                 return; // Ne pas ajouter le joueur si le lobby est plein
             }
 
@@ -56,7 +52,7 @@ namespace GamingPlatform6.Hubs
             await Groups.AddToGroupAsync(Context.ConnectionId, lobbyId);
 
             // Informer les autres membres du lobby que l'utilisateur a rejoint
-            await Clients.Group(lobbyId).SendAsync("ReceiveMessage", "System", $"{user} {_stringLocalizer["PlayerJoinedLobby"]}.");
+            await Clients.Group(lobbyId).SendAsync("ReceiveMessage", "System", $"{user} a rejoint le lobby.");
 
             // Envoyer à tous les membres du lobby le nombre actuel de personnes en ligne
             var onlineCount = Lobbies[lobbyId].Count;
@@ -77,7 +73,7 @@ namespace GamingPlatform6.Hubs
 
                 if (symbol == null)
                 {
-                    await Clients.Caller.SendAsync("ErrorMessage", _stringLocalizer["LobbyFull"]);
+                    await Clients.Caller.SendAsync("ErrorMessage", "Le lobby est complet.");
                     return;
                 }
 
