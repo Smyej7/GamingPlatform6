@@ -1,7 +1,10 @@
-﻿@model GamingPlatform6.Models.Lobby
+﻿@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> StringLocalizer
+
+@model GamingPlatform6.Models.Lobby
 
 @{
-    ViewData["Title"] = "Lobby Room";
+    ViewData["Title"] = @StringLocalizer["Lobby"];
     var userName = Context.Request.Cookies["username"];  // Récupérer le nom d'utilisateur depuis le cookie
 }
 
@@ -33,26 +36,21 @@
     </style>
 </head>
 <body>
-    <h2>Lobby : @Model.LobbyId</h2>
-    <p>Hôte : @Model.HostUserId</p>
+    @* <h2>Lobby : @Model.LobbyId</h2> *@
+    <p>@StringLocalizer["Host"] : @Model.HostUserId</p>
 
     <div id="messagesList"></div>
     <div>
-        <strong>Personnes en ligne: </strong><span id="onlineCount">0</span>
+        <strong>@StringLocalizer["ConnectedPlayers"]: </strong><span id="onlineCount">0</span>
     </div>
 
     <!-- Message d'erreur pour informer si le lobby est complet -->
     <div id="errorMessage" style="color: red; display: none;">
-        <p>Le lobby est déjà complet. Vous ne pouvez pas rejoindre. Vous allez être redirigé vers une autre page...</p>
+        <p>@StringLocalizer["LobbyFull"]</p>
     </div>
-
-    <input type="text" id="messageInput" placeholder="Votre message" />
-    <button id="sendButton">Envoyer</button>
-
 
     <!-- Grille de jeu -->
     <div id="gameBoard" class="board"></div>
-
     
     <script>
                                             //Board logique 
@@ -104,9 +102,9 @@
             document.getElementById("messagesList").appendChild(msg);
 
             // Vérifier si le message indique que le lobby est complet
-            if (message.includes("déjà complet")) {
+            if (message.includes("*C1*-")) {
                 // Afficher le message d'erreur
-                document.getElementById("errorMessage").style.display = "block";
+                // document.getElementById("errorMessage").style.display = "block";
 
                 window.location.href = "/Lobby/Full";
             }
@@ -115,18 +113,6 @@
         // Recevoir le nombre de personnes en ligne
         connection.on("UpdateOnlineCount", (count) => {
             document.getElementById("onlineCount").textContent = count;
-        });
-
-        // Envoyer un message
-        document.getElementById("sendButton").addEventListener("click", () => {
-            const message = document.getElementById("messageInput").value;
-
-            if (message) {
-                // Appeler la méthode SignalR pour envoyer le message avec le nom d'utilisateur
-                connection.invoke("SendMessage", lobbyId, userName, message)
-                    .catch(err => console.error(err.toString()));
-                document.getElementById("messageInput").value = "";  // Effacer le champ de texte après l'envoi
-            }
         });
 
         // Démarrer la connexion
@@ -148,7 +134,14 @@
                     cell.classList.add("cell");
                     cell.dataset.row = row;
                     cell.dataset.col = col;
-                    cell.addEventListener("click", () => makeMove(row, col));
+                    cell.addEventListener("click", () => {
+                        if (document.getElementById("onlineCount").textContent < 2) {
+                            alert('@StringLocalizer["WaitingForOpponent"]');
+                        }
+                        else {
+                            makeMove(row, col)
+                        }
+                    });
                     board.appendChild(cell);
                 }
             }

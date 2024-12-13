@@ -92,12 +92,15 @@ namespace GamingPlatform6.Controllers
             return RedirectToAction("LogAction"); // Rediriger vers la même page après succès
         }
 
-        // Exemple d'action pour afficher la liste des utilisateurs
-        //[HttpGet]
-        //public IActionResult Index()
-        //{
-        //    var games = _context.Games.ToList();
-        //    return View(games);
-        //}
+        // Action pour afficher tous les Logs
+        public IActionResult ListLogs()
+        {
+            // Récupérer tous les logs de la base de données et les trier par ordre décroissant des points
+            var logs = _context.ActionLogs
+                .OrderByDescending(l => l.LoggedAt)  // Tri par points décroissants
+                .ToList();
+
+            return View(logs);  // Passer les logs à la vue
+        }
     }
 }

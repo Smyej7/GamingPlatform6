@@ -1,5 +1,8 @@
-﻿@{
-    ViewData["Title"] = "Créer un Lobby";
+﻿@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> StringLocalizer
+
+@{
+    ViewData["Title"] = @StringLocalizer["CreateLobby"];
 
     // Récupérer le nom d'utilisateur depuis le cookie
     var userName = Context.Request.Cookies["username"];
@@ -13,26 +16,26 @@
 <body>
 
     <div class="container">
-        <h2>Créer un Lobby</h2>
+        <h2>@StringLocalizer["CreateLobby"]</h2>
 
         @if (string.IsNullOrEmpty(userName))
         {
-            <p style="color: red;">Vous devez d'abord être connecté pour créer un lobby.</p>
+            <p style="color: red;">@StringLocalizer["MustBeLoggedToCreateLobby"].</p>
         }
         else
         {
             <form method="post">
                 <!-- Passer le nom d'utilisateur récupéré depuis le cookie -->
                 <input type="hidden" name="hostUserId" value="@userName" />
-                <button type="submit">Créer le Lobby</button>
+                <button type="submit">@StringLocalizer["Create"]</button>
             </form>
 
             @if (ViewData["LobbyLink"] != null)
             {
                 <div class="link-container">
-                    <p><strong>Lien de votre lobby :</strong></p>
+                    <p><strong>@StringLocalizer["LinkToYourLobby"] :</strong></p>
                     <input type="text" value="@ViewData["LobbyLink"]" readonly />
-                    <p>Partagez ce lien avec un autre joueur pour qu'il rejoigne votre lobby.</p>
+                    <p>@StringLocalizer["ShareThisLink"].</p>
                 </div>
             }
         }

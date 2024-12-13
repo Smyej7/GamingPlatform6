@@ -1,10 +1,10 @@
-﻿@using Microsoft.Extensions.Localization
+@using Microsoft.Extensions.Localization
 @inject IStringLocalizer<SharedResource> StringLocalizer
 
-@model IEnumerable<GamingPlatform6.Models.Score>
+@model IEnumerable<GamingPlatform6.Models.ActionLog>
 
 @{
-    ViewData["Title"] = @StringLocalizer["ListScores"];
+    ViewData["Title"] = @StringLocalizer["ListLogs"];
 }
 
 <!DOCTYPE html>
@@ -16,7 +16,7 @@
     <div style="display: flex; justify-content: center; align-items: center; flex-direction: column; height: 100vh; padding: 20px;">
         
         <!-- Titre au-dessus du tableau -->
-        <h2 style="text-align: center; margin-bottom: 20px;">@StringLocalizer["ListScores"]</h2>
+        <h2 style="text-align: center; margin-bottom: 20px;">@StringLocalizer["ListLogs"]</h2>
 
         <!-- Table des scores -->
         <div style="width: 80%; margin-top: 20px;">
@@ -25,8 +25,9 @@
                     <tr>
                         @* <th>Jeu</th> *@
                         <th>@StringLocalizer["User"]</th>
-                        <th>@StringLocalizer["Score"]</th>
-                        <th>@StringLocalizer["DateOfAchievement"]</th>
+                        <th>@StringLocalizer["Action"]</th>
+                        <th>@StringLocalizer["Description"]</th>
+                        <th>@StringLocalizer["Date"]</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -37,15 +38,16 @@
                             <tr>
                                 @* <td>@score.GameId</td> *@
                                 <td>@score.UserId</td>
-                                <td>@score.Points</td>
-                                <td>@score.AchievedAt</td>
+                                <td>@score.Action</td>
+                                <td>@score.Description</td>
+                                <td>@score.LoggedAt</td>
                             </tr>
                         }
                     }
                     else
                     {
                         <tr>
-                            <td colspan="4">@StringLocalizer["NoAvailableScore"].</td>
+                            <td colspan="4">@StringLocalizer["NoAvailableLogs"].</td>
                         </tr>
                     }
                 </tbody>

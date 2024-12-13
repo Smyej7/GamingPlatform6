@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using GamingPlatform6.Data;
+using GamingPlatform6.Models;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Localization;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,6 +10,15 @@ namespace GamingPlatform6.Hubs
 {
     public class LobbyHub : Hub
     {
+        private readonly ApplicationDbContext _context;
+        private readonly IStringLocalizer<SharedResource> _stringLocalizer;
+        
+        public LobbyHub(ApplicationDbContext context,
+                        IStringLocalizer<SharedResource> stringLocalizer)
+        {
+            _context = context; // Injection de dépendance
+            _stringLocalizer = stringLocalizer;
+        }
 
 #region LobbyHub
 
@@ -27,7 +39,7 @@ namespace GamingPlatform6.Hubs
             if (Lobbies[lobbyId].Count >= MaxPlayersInLobby)
             {
                 // Si le lobby est plein, informer uniquement le joueur concerné
-                await Clients.Caller.SendAsync("ReceiveMessage", "System", $"Le lobby {lobbyId} est déjà complet. Vous allez être redirigé.");
+                await Clients.Caller.SendAsync("ReceiveMessage", "System", $"*C1*-{_stringLocalizer["LobbyFull"]}");
                 return; // Ne pas ajouter le joueur si le lobby est plein
             }
 
@@ -44,7 +56,7 @@ namespace GamingPlatform6.Hubs
             await Groups.AddToGroupAsync(Context.ConnectionId, lobbyId);
 
             // Informer les autres membres du lobby que l'utilisateur a rejoint
-            await Clients.Group(lobbyId).SendAsync("ReceiveMessage", "System", $"{user} a rejoint le lobby.");
+            await Clients.Group(lobbyId).SendAsync("ReceiveMessage", "System", $"{user} {_stringLocalizer["PlayerJoinedLobby"]}.");
 
             // Envoyer à tous les membres du lobby le nombre actuel de personnes en ligne
             var onlineCount = Lobbies[lobbyId].Count;
@@ -65,11 +77,12 @@ namespace GamingPlatform6.Hubs
 
                 if (symbol == null)
                 {
-                    await Clients.Caller.SendAsync("ErrorMessage", "Le lobby est complet.");
+                    await Clients.Caller.SendAsync("ErrorMessage", _stringLocalizer["LobbyFull"]);
                     return;
                 }
 
                 game.Players[user] = symbol;
+                game.Scores[user] = 9; // Initialiser le score à 9
 
                 // Définir le premier joueur comme joueur actif
                 if (game.CurrentPlayer == null)
@@ -86,7 +99,8 @@ namespace GamingPlatform6.Hubs
             if (Lobbies.ContainsKey(lobbyId))
             {
                 // Retirer l'utilisateur du lobby
-                Lobbies[lobbyId] = new ConcurrentBag<string>(Lobbies[lobbyId].Where(u => u != user));
+                var updatedLobby = new ConcurrentBag<string>(Lobbies[lobbyId].Where(u => u != user));
+                Lobbies[lobbyId] = updatedLobby;
 
                 // Retirer l'utilisateur du groupe SignalR du lobby
                 await Groups.RemoveFromGroupAsync(Context.ConnectionId, lobbyId);
@@ -98,6 +112,35 @@ namespace GamingPlatform6.Hubs
                 var onlineCount = Lobbies[lobbyId].Count;
                 await Clients.Group(lobbyId).SendAsync("UpdateOnlineCount", onlineCount);
 
+                // Vérifier s'il reste un joueur dans le lobby
+                if (updatedLobby.Count == 1)
+                {
+                    // L'autre joueur gagne automatiquement
+                    var remainingPlayer = updatedLobby.First();
+                    var game = Games[lobbyId];
+
+                    // Terminer le jeu et déclarer l'autre joueur comme gagnant
+                    game.CurrentPlayer = null;  // Fin du jeu
+
+                    var winnerMessage = $"{remainingPlayer} a gagné car l'autre joueur a quitté la partie.";
+                    await Clients.Group(lobbyId).SendAsync("GameOver", winnerMessage);
+
+                    // Sauvegarder le score du gagnant
+                    var winnerScore = new Score
+                    {
+                        UserId = remainingPlayer,
+                        GameId = "morpion",
+                        Points = game.Scores[remainingPlayer],
+                        AchievedAt = DateTime.Now
+                    };
+
+                    _context.Scores.Add(winnerScore);
+                    await _context.SaveChangesAsync();
+
+                    // Supprimer le jeu après la fin
+                    Games.TryRemove(lobbyId, out _);
+                }
+                
                 //TicTacToe logique
                 if (Games.ContainsKey(lobbyId))
                 {
@@ -200,6 +243,17 @@ namespace GamingPlatform6.Hubs
                 return;
             }
 
+            ActionLog actionLog = new ActionLog{
+                GameId = "morpion",
+                Action = "click",
+                Description = "case (" + row + "," + col + ")",
+                Partie = 1,
+                UserId = user
+            };
+            
+            _context.ActionLogs.Add(actionLog);
+            _context.SaveChanges();
+
             // Mettre à jour la grille pour tous les joueurs
             await Clients.Group(lobbyId).SendAsync("UpdateBoard", game.Board);
 
@@ -208,6 +262,22 @@ namespace GamingPlatform6.Hubs
             {
                 var message = result.Winner != null ? $"{result.Winner} a gagné !" : "Match nul !";
                 await Clients.Group(lobbyId).SendAsync("GameOver", message);
+
+                // Sauvegarder le score du gagnant dans la base de données
+                if (result.Winner != null)
+                {
+                    var winnerScore = new Score
+                    {
+                        UserId = result.Winner,
+                        GameId = "morpion",
+                        Points = game.Scores[result.Winner],
+                        AchievedAt = DateTime.Now
+                    };
+                    
+                    // Ajouter à la base de données
+                    _context.Scores.Add(winnerScore);
+                    await _context.SaveChangesAsync();
+                }
                 Games.TryRemove(lobbyId, out _); // Supprimer le jeu après la fin
             }
         }
@@ -224,6 +294,8 @@ namespace GamingPlatform6.Hubs
 
         public string CurrentPlayer { get; set; }
         public ConcurrentDictionary<string, string> Players { get; private set; } = new();
+        public ConcurrentDictionary<string, int> Scores { get; private set; } = new ConcurrentDictionary<string, int>();
+
 
         public (bool Success, string Message, bool GameOver, string Winner) MakeMove(int row, int col, string user)
         {
@@ -245,6 +317,12 @@ namespace GamingPlatform6.Hubs
             // Associer le symbole au joueur
             var symbol = Players[user];
             Board[row][col] = symbol;
+
+            // Décrémenter le score
+            if (Scores.ContainsKey(user))
+            {
+                Scores[user]--;
+            }
 
             // Vérifier si le joueur a gagné
             if (CheckWin(symbol))

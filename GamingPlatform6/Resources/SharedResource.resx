@@ -129,4 +129,79 @@
   <data name="Wellcome" xml:space="preserve">
     <value>Wellcome from Resource file</value>
   </data>
+  <data name="PlatformName" xml:space="preserve">
+    <value>Gaming Platform</value>
+  </data>
+  <data name="ChangeLanguage" xml:space="preserve">
+    <value>Change language</value>
+  </data>
+  <data name="ListScores" xml:space="preserve">
+    <value>Scores list</value>
+  </data>
+  <data name="ListLogs" xml:space="preserve">
+    <value>Logs list</value>
+  </data>
+  <data name="CreateLobby" xml:space="preserve">
+    <value>Create lobby</value>
+  </data>
+  <data name="User" xml:space="preserve">
+    <value>User</value>
+  </data>
+  <data name="Score" xml:space="preserve">
+    <value>Score</value>
+  </data>
+  <data name="DateOfAchievement" xml:space="preserve">
+    <value>Date of achievement</value>
+  </data>
+  <data name="NoAvailableScore" xml:space="preserve">
+    <value>No available score</value>
+  </data>
+  <data name="NoAvailableLogs" xml:space="preserve">
+    <value>No available logs</value>
+  </data>
+  <data name="Action" xml:space="preserve">
+    <value>Action</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="MustBeLoggedToCreateLobby" xml:space="preserve">
+    <value>You must first be logged in to create a lobby</value>
+  </data>
+  <data name="Create" xml:space="preserve">
+    <value>Create</value>
+  </data>
+  <data name="LinkToYourLobby" xml:space="preserve">
+    <value>Link to your lobby</value>
+  </data>
+  <data name="ShareThisLink" xml:space="preserve">
+    <value>Share this link</value>
+  </data>
+  <data name="Host" xml:space="preserve">
+    <value>Host</value>
+  </data>
+  <data name="PlayerJoinedLobby" xml:space="preserve">
+    <value>joined the lobby</value>
+  </data>
+  <data name="PlayerLeftLobby" xml:space="preserve">
+    <value>left the lobby</value>
+  </data>
+  <data name="ConnectedPlayers" xml:space="preserve">
+    <value>Connected players</value>
+  </data>
+  <data name="WonBecauseOpponentLeft" xml:space="preserve">
+    <value>won because the other player left the game</value>
+  </data>
+  <data name="Lobby" xml:space="preserve">
+    <value>Lobby</value>
+  </data>
+  <data name="LobbyFull" xml:space="preserve">
+    <value>The lobby is already full. You can't join.</value>
+  </data>
+  <data name="WaitingForOpponent" xml:space="preserve">
+    <value>Waiting for your opponent</value>
+  </data>
 </root>
