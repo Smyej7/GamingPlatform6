@@ -7,10 +7,13 @@ namespace GamingPlatform6.Hubs
 {
     public class LobbyHub : Hub
     {
+
+#region LobbyHub
+
         // Utiliser un dictionnaire concurrent pour stocker les informations des lobbies
         private static readonly ConcurrentDictionary<string, ConcurrentBag<string>> Lobbies = new();
         private static readonly int MaxPlayersInLobby = 2;  // Limite des joueurs dans un lobby
-
+        
         // Méthode appelée lorsqu'un client rejoint un lobby
         public async Task JoinLobby(string lobbyId, string user)
         {
@@ -46,6 +49,34 @@ namespace GamingPlatform6.Hubs
             // Envoyer à tous les membres du lobby le nombre actuel de personnes en ligne
             var onlineCount = Lobbies[lobbyId].Count;
             await Clients.Group(lobbyId).SendAsync("UpdateOnlineCount", onlineCount);
+            
+            //TicTacToe logique
+            if (!Games.ContainsKey(lobbyId))
+            {
+                Games[lobbyId] = new TicTacToeGame();
+            }
+
+            var game = Games[lobbyId];
+
+            // Associer le joueur à un symbole (X ou O) s'il reste de la place
+            if (!game.Players.ContainsKey(user))
+            {
+                var symbol = game.Players.Count == 0 ? "X" : (game.Players.Count == 1 ? "O" : null);
+
+                if (symbol == null)
+                {
+                    await Clients.Caller.SendAsync("ErrorMessage", "Le lobby est complet.");
+                    return;
+                }
+
+                game.Players[user] = symbol;
+
+                // Définir le premier joueur comme joueur actif
+                if (game.CurrentPlayer == null)
+                {
+                    game.CurrentPlayer = user;
+                }
+            }
         }
 
         // Méthode appelée lorsqu'un client quitte un lobby
@@ -66,6 +97,29 @@ namespace GamingPlatform6.Hubs
                 // Envoyer à tous les membres du lobby le nombre actuel de personnes en ligne
                 var onlineCount = Lobbies[lobbyId].Count;
                 await Clients.Group(lobbyId).SendAsync("UpdateOnlineCount", onlineCount);
+
+                //TicTacToe logique
+                if (Games.ContainsKey(lobbyId))
+                {
+                    var game = Games[lobbyId];
+
+                    // Supprimer le joueur du jeu
+                    if (game.Players.ContainsKey(user))
+                    {
+                        game.Players.Remove(user, out _);
+                    }
+
+                    // Si aucun joueur n'est présent, supprimer le jeu
+                    if (game.Players.Count == 0)
+                    {
+                        Games.TryRemove(lobbyId, out _);
+                    }
+                    else
+                    {
+                        // Passer au tour du joueur restant
+                        game.CurrentPlayer = game.Players.Keys.FirstOrDefault();
+                    }
+                }
             }
         }
 
@@ -95,5 +149,130 @@ namespace GamingPlatform6.Hubs
 
             await base.OnDisconnectedAsync(exception);
         }
+
+#endregion
+
+#region TicTacToe
+
+        // Gestion de l'état du jeu (par lobby)
+        private static readonly ConcurrentDictionary<string, TicTacToeGame> Games = new();
+
+        // Méthode appelée lorsqu'un joueur effectue un mouvement
+        public async Task MakeMove(string lobbyId, int row, int col)
+        {
+            // Récupérer le nom d'utilisateur depuis le cookie
+            var user = Context.GetHttpContext().Request.Cookies["username"];
+
+            if (!Games.ContainsKey(lobbyId) || Games[lobbyId] == null)
+            {
+                await Clients.Caller.SendAsync("ErrorMessage", "Aucun jeu actif dans ce lobby.");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(user))
+            {
+                await Clients.Caller.SendAsync("ErrorMessage", "Utilisateur non authentifié.");
+                return;
+            }
+
+            // Vérifier si le jeu existe pour ce lobby
+            if (!Games.ContainsKey(lobbyId))
+            {
+                await Clients.Caller.SendAsync("ErrorMessage", "Aucun jeu en cours pour ce lobby.");
+                return;
+            }
+
+            var game = Games[lobbyId];
+
+            // Vérifier si c'est le tour du joueur
+            if (game.CurrentPlayer != user)
+            {
+                await Clients.Caller.SendAsync("ErrorMessage", "Ce n'est pas votre tour.");
+                return;
+            }
+
+            // Effectuer le mouvement et vérifier si c'est valide
+            var result = game.MakeMove(row, col, user);
+
+            if (!result.Success)
+            {
+                await Clients.Caller.SendAsync("ErrorMessage", result.Message);
+                return;
+            }
+
+            // Mettre à jour la grille pour tous les joueurs
+            await Clients.Group(lobbyId).SendAsync("UpdateBoard", game.Board);
+
+            // Vérifier si un joueur a gagné ou si c'est un match nul
+            if (result.GameOver)
+            {
+                var message = result.Winner != null ? $"{result.Winner} a gagné !" : "Match nul !";
+                await Clients.Group(lobbyId).SendAsync("GameOver", message);
+                Games.TryRemove(lobbyId, out _); // Supprimer le jeu après la fin
+            }
+        }
+
+    // Classe représentant l'état d'un jeu de morpion
+    public class TicTacToeGame
+    {
+        public string[][] Board { get; private set; } = new string[3][]
+        {
+            new string[3], // Ligne 0
+            new string[3], // Ligne 1
+            new string[3]  // Ligne 2
+        };
+
+        public string CurrentPlayer { get; set; }
+        public ConcurrentDictionary<string, string> Players { get; private set; } = new();
+
+        public (bool Success, string Message, bool GameOver, string Winner) MakeMove(int row, int col, string user)
+        {
+            if (!Players.ContainsKey(user))
+            {
+                return (false, "Vous n'êtes pas dans le jeu.", false, null);
+            }
+
+            if (Board[row][col] != null)
+            {
+                return (false, "Case déjà occupée.", false, null);
+            }
+
+            if (CurrentPlayer != user)
+            {
+                return (false, "Ce n'est pas votre tour.", false, null);
+            }
+
+            // Associer le symbole au joueur
+            var symbol = Players[user];
+            Board[row][col] = symbol;
+
+            // Vérifier si le joueur a gagné
+            if (CheckWin(symbol))
+            {
+                return (true, null, true, user);
+            }
+
+            // Vérifier si la grille est pleine
+            if (Board.All(rowData => rowData.All(cell => cell != null)))
+            {
+                return (true, null, true, null); // Match nul
+            }
+
+            // Passer au joueur suivant
+            CurrentPlayer = Players.Keys.FirstOrDefault(p => p != user);
+            return (true, null, false, null);
+        }
+
+        private bool CheckWin(string symbol)
+        {
+            // Vérifier les lignes, colonnes et diagonales
+            return Enumerable.Range(0, 3).Any(i => (Board[i][0] == symbol && Board[i][1] == symbol && Board[i][2] == symbol) || // Lignes
+                                                (Board[0][i] == symbol && Board[1][i] == symbol && Board[2][i] == symbol)) || // Colonnes
+                (Board[0][0] == symbol && Board[1][1] == symbol && Board[2][2] == symbol) || // Diagonale principale
+                (Board[0][2] == symbol && Board[1][1] == symbol && Board[2][0] == symbol);   // Diagonale secondaire
+        }
+    }
+
+#endregion
     }
 }

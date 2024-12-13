@@ -14,7 +14,7 @@ namespace GamingPlatform6
             //=====Middleware and Services=============================================
             var builder = WebApplication.CreateBuilder(args);
 
-            // Configure Entity Framework avec la base de données SQLite ou SQL Servervb
+            // Configure Entity Framework avec la base de donnï¿½es SQLite ou SQL Servervb
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -28,12 +28,12 @@ namespace GamingPlatform6
             AddingMultiLanguageSupportServices(builder);
 
             // Add services to the container.
-            builder.Services.AddControllersWithViews();// ligne dupliquée
+            builder.Services.AddControllersWithViews();// ligne dupliquï¿½e
 
             //====App===================================================================
             var app = builder.Build();
 
-            // Utiliser le middleware de vérification du cookie
+            // Utiliser le middleware de vï¿½rification du cookie
             app.UseMiddleware<CheckUserCookieMiddleware>();
 
             //adding multi-language support
@@ -55,7 +55,7 @@ namespace GamingPlatform6
                 pattern: "{controller=Home}/{action=ChangeLanguage}/{id?}");
 
             // Ajouter les points de terminaison SignalR
-            app.MapHub<Hubs.LobbyHub>("/lobbyHub"); // URL pour accéder au hub SignalR
+            app.MapHub<Hubs.LobbyHub>("/lobbyHub"); // URL pour accï¿½der au hub SignalR
 
             app.Run();
         }

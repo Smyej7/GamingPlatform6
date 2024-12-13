@@ -10,12 +10,31 @@
 <head>
     <title>@ViewData["Title"]</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.4/signalr.min.js"></script>
+    <style>
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 5px;
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            border: 1px solid black;
+            cursor: pointer;
+        }
+        .cell.taken {
+            pointer-events: none;
+        }
+    </style>
 </head>
 <body>
-
     <h2>Lobby : @Model.LobbyId</h2>
     <p>Hôte : @Model.HostUserId</p>
-    <p>Invité : @Model.GuestUserId ?? "En attente d'un invité..."</p>
 
     <div id="messagesList"></div>
     <div>
@@ -30,11 +49,53 @@
     <input type="text" id="messageInput" placeholder="Votre message" />
     <button id="sendButton">Envoyer</button>
 
+
+    <!-- Grille de jeu -->
+    <div id="gameBoard" class="board"></div>
+
+    
     <script>
+                                            //Board logique 
+        const lobbyId = "@Model.LobbyId";
+        const userName = "@userName";
+
         // Se connecter au hub SignalR
         const connection = new signalR.HubConnectionBuilder()
-            .withUrl("/lobbyHub?lobbyId=@Model.LobbyId")  // Utiliser l'ID du lobby
+            .withUrl("/lobbyHub?lobbyId=" + lobbyId)  // Utiliser l'ID du lobby
             .build();
+
+        // Effectuer un mouvement
+        function makeMove(row, col) {
+            connection.invoke("MakeMove", lobbyId, row, col)
+                .catch(err => console.error(err.toString()));
+        }
+
+        // Mettre à jour la grille
+        connection.on("UpdateBoard", (board) => {
+            const cells = document.querySelectorAll(".cell");
+            cells.forEach(cell => {
+                const row = cell.dataset.row;
+                const col = cell.dataset.col;
+                const value = board[row][col];
+                cell.textContent = value;
+                if (value) {
+                    cell.classList.add("taken");
+                }
+            });
+        });
+
+        // Afficher les messages de fin de jeu
+        connection.on("GameOver", (message) => {
+            alert(message);
+            location.reload();
+        });
+
+        // Afficher les erreurs
+        connection.on("ErrorMessage", (message) => {
+            alert(message);
+        });
+        
+                                            //Lobby logique
 
         // Recevoir les messages
         connection.on("ReceiveMessage", (user, message) => {
@@ -50,7 +111,7 @@
                 window.location.href = "/Lobby/Full";
             }
         });
-
+        
         // Recevoir le nombre de personnes en ligne
         connection.on("UpdateOnlineCount", (count) => {
             document.getElementById("onlineCount").textContent = count;
@@ -59,11 +120,10 @@
         // Envoyer un message
         document.getElementById("sendButton").addEventListener("click", () => {
             const message = document.getElementById("messageInput").value;
-            const user = "@userName"; // Récupérer le nom d'utilisateur depuis le cookie
 
             if (message) {
                 // Appeler la méthode SignalR pour envoyer le message avec le nom d'utilisateur
-                connection.invoke("SendMessage", "@Model.LobbyId", user, message)
+                connection.invoke("SendMessage", lobbyId, userName, message)
                     .catch(err => console.error(err.toString()));
                 document.getElementById("messageInput").value = "";  // Effacer le champ de texte après l'envoi
             }
@@ -71,9 +131,37 @@
 
         // Démarrer la connexion
         connection.start().then(() => {
-            // Indiquer que l'utilisateur a rejoint le lobby
-            connection.invoke("JoinLobby", "@Model.LobbyId", "@userName").catch(err => console.error(err.toString()));
+            connection.invoke("JoinLobby", lobbyId, userName)
+                .catch(err => console.error(err.toString()));
+            initializeBoard(); // Initialiser la grille une fois connecté
         }).catch(err => console.error(err.toString()));
+    </script>
+
+    @* Initialiser la grille *@
+    <script>
+        function initializeBoard() {
+            const board = document.getElementById("gameBoard");
+            board.innerHTML = "";
+            for (let row = 0; row < 3; row++) {
+                for (let col = 0; col < 3; col++) {
+                    const cell = document.createElement("div");
+                    cell.classList.add("cell");
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+                    cell.addEventListener("click", () => makeMove(row, col));
+                    board.appendChild(cell);
+                }
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const myElement = document.getElementById("gameBoard");
+            if (myElement) {
+                initializeBoard();
+            } else {
+                console.log("Element non trouvé.");
+            }
+        });
     </script>
 
 </body>
